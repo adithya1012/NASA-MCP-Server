@@ -13,9 +13,9 @@ app.use(express.json());
 
 // MCP Client configuration
 const mcpConfig: MCPClientConfig = {
-  scriptPath: "../server/mcp-python/tools/index.py",
-  pythonPath: "../server/mcp-python/.venv",
-  venvPath: "../server/mcp-python/.venv",
+  scriptPath: "../server/tools/index.py",
+  pythonPath: "../server/.venv",
+  venvPath: "../server/.venv",
   provider: "openai",
 };
 
