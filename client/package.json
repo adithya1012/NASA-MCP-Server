@@ -1,0 +1,43 @@
+{
+  "name": "mcp-websocket-server",
+  "version": "1.0.0",
+  "description": "WebSocket server with MCP client integration",
+  "main": "build/server.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node build/server.js",
+    "dev": "tsc && node build/server.js",
+    "clean": "rm -rf build",
+    "type-check": "tsc --noEmit",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.53.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "openai": "^4.67.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.6",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "websocket",
+    "mcp",
+    "anthropic",
+    "openai",
+    "typescript"
+  ],
+  "author": "Your Name",
+  "license": "MIT"
+}
