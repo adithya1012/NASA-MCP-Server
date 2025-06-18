@@ -2,19 +2,37 @@
 
 A WebSocket server that integrates with Model Context Protocol (MCP) clients to provide tool-enabled AI conversations.
 
+The Frontend code for this repo is present in the [MIE Chatbot](https://github.com/adithya1012/MIE_ChatBot).
+
 ## Project Structure
 
 ```
-project-root/
-├── src/
-│   ├── server.ts              # Main WebSocket server
-│   ├── mcpClientManager.ts    # MCP client manager
-│   └── index.ts               # MCP client implementation
-├── package.json
-├── tsconfig.json
-├── .env                       # Your environment variables
-└── .env.example              # Environment template
+├── README.md
+├── client
+│   ├── build
+│   │   ├── index.js                     # MCP Client
+│   │   ├── mcpClientManager.js
+│   │   └── server.js                    # Websocket connection
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── src
+│   │   ├── index.ts
+│   │   ├── mcpClientManager.ts
+│   │   └── server.ts
+│   └── tsconfig.json
+└── server
+    ├── README.md
+    ├── main.py
+    ├── pyproject.toml
+    ├── tools
+    │   ├── index.py                    # MCP Server
+    │   └── mars_img.py
+    └── uv.lock
 ```
+
+## Architecture
+
+![Mermaid Diagram](Screenshot/Mermaid%20Chart.png)
 
 ## Setup Instructions
 
@@ -39,19 +57,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
-### 3. File Organization
-
-Create the `src` folder and move your files:
-
-```bash
-mkdir -p src
-# Move your files to src/ directory:
-# - server.ts → src/server.ts
-# - mcpClientManager.ts → src/mcpClientManager.ts
-# - index.ts → src/index.ts
-```
-
-### 4. Update MCP Configuration
+### 3. Update MCP Configuration
 
 In `src/server.ts`, update the `mcpConfig` object to point to your actual MCP server:
 
