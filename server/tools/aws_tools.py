@@ -103,7 +103,7 @@ async def get_alerts(state: str) -> str:
 
 @mcp.tool()
 async def get_add(a, b) -> str:
-    """Gives the addition is 2 numbers
+    """Returns the sum of two numbers.
     Args:
     a: Integer
     b: Integer
