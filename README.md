@@ -32,13 +32,23 @@ The Frontend code for this repo is present in the [MIE Chatbot](https://github.c
 
 ## Architecture
 
-<!-- ![Mermaid Diagram](Screenshot/Mermaid%20Chart.png) -->
-
 ```mermaid
 flowchart TD
 
+subgraph Frontend
+        A[Chatbot UI]
+    end
 
-
+    subgraph Backend
+        direction TB
+        B[MCP Client]
+        subgraph MCP_Server["MCP Server"]
+            C[Mars Rover Image Tool]
+            D[Earth Image Tool]
+            E[Weather Tool]
+        end
+        F[LLM]
+    end
 
     A -- WebSocket --> B
     B -- "Get available tools" --> MCP_Server
