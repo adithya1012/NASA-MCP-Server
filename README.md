@@ -32,7 +32,28 @@ The Frontend code for this repo is present in the [MIE Chatbot](https://github.c
 
 ## Architecture
 
-![Mermaid Diagram](Screenshot/Mermaid%20Chart.png)
+<!-- ![Mermaid Diagram](Screenshot/Mermaid%20Chart.png) -->
+
+```mermaid
+flowchart TD
+
+
+
+
+    A -- WebSocket --> B
+    B -- "Get available tools" --> MCP_Server
+    MCP_Server -- "Tools info" --> B
+    B -- "Prompt + Tools info" --> F
+    F -- "Tool choice + params" --> B
+    B -- "Execute tool" --> MCP_Server
+    MCP_Server -- "Tool result" --> B
+    B -- "Result" --> F
+    F -- "Next tool or final result" --> B
+    B -- "Final result" --> A
+
+    style Backend stroke-dasharray: 5 5
+    style MCP_Server stroke-width:2px,stroke:#888
+```
 
 ## Setup Instructions
 
