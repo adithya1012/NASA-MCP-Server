@@ -63,7 +63,6 @@ subgraph Frontend
 
     style Backend stroke-dasharray: 5 5
     style MCP_Server stroke-width:2px,stroke:#888
-
 ```
 
 ## Setup Instructions
