@@ -99,7 +99,7 @@ async def get_earth_image_tool(earth_date: Any = None, type: Any = None) -> str:
     return await get_earth_image_definition(earth_date, type)
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="streamable-http")
 
 
 # get_earth_image_tool(type="natural")
