@@ -33,36 +33,38 @@ The Frontend code for this repo is present in the [MIE Chatbot](https://github.c
 ## Architecture
 
 ```mermaid
-flowchart TD
+flowchart LR
+ subgraph MCP_Pilot["MCP_Pilot Repo"]
+    direction TB
+        A["Chatbot UI"]
+        B["MCP Client"]
+        F["LLM"]
+  end
+ subgraph MCP_Server["MCP Server"]
+        C["Mars Rover Image Tool"]
+        D["Earth Image Tool"]
+        E["Weather Tool"]
+  end
+ subgraph NASA_MCP_Server["NASA_MCP_Server Repo"]
+    direction TB
+        MCP_Server
+  end
+    A -- Prompt --> B
+    B -- Prompt + Tools info --> F
+    F -- Tool choice + params --> B
+    B -- Final result --> A
+    F -- Final Result --> B
+    B -- Get available tools --> MCP_Server
+    MCP_Server -- Tools info --> B
+    B -- Execute tool --> MCP_Server
+    MCP_Server -- Tool result --> B
+    B -- Tool Result --> F
 
-subgraph Frontend
-        A[Chatbot UI]
-    end
-
-    subgraph Backend
-        direction TB
-        B[MCP Client]
-        subgraph MCP_Server["MCP Server"]
-            C[Mars Rover Image Tool]
-            D[Earth Image Tool]
-            E[Weather Tool]
-        end
-        F[LLM]
-    end
-
-    A -- WebSocket --> B
-    B -- "Get available tools" --> MCP_Server
-    MCP_Server -- "Tools info" --> B
-    B -- "Prompt + Tools info" --> F
-    F -- "Tool choice + params" --> B
-    B -- "Execute tool" --> MCP_Server
-    MCP_Server -- "Tool result" --> B
-    B -- "Result" --> F
-    F -- "Next tool or final result" --> B
-    B -- "Final result" --> A
-
-    style Backend stroke-dasharray: 5 5
     style MCP_Server stroke-width:2px,stroke:#888
+    style MCP_Pilot stroke-width:2px,stroke:#FF4136
+    style NASA_MCP_Server stroke-width:2px,stroke:#FF4136
+
+
 ```
 
 ## YouTube UpdatesAdd commentMore actions
