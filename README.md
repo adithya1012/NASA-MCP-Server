@@ -1,8 +1,8 @@
-# MCP Server
+# NASA MCP Server
 
 A Python implementation of the Model Context Protocol (MCP) server, providing tool-enabled AI conversations via the [streamable-http transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http).
 
-The Frontend code for this project is present in the [MIE Chatbot](https://github.com/adithya1012/MIE_ChatBot).
+The Frontend code for this project is present in the [MCP_Pilot](https://github.com/adithya1012/MCP_Pilot).
 
 ## Project Structure
 

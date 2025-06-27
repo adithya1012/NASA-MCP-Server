@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nasa-mcp-server"
+version = "0.1.0"
+description = "MCP server for NASA Mars Rover images"
+authors = [{name = "Adithya", email = "adithyasn7@gmail.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "mcp>=0.1.0",
+    "httpx>=0.24.0",
+    "pydantic>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/adithya1012/NASA-MCP-Server"
+Repository = "https://github.com/adithya1012/NASA-MCP-Server"
+Issues = "https://github.com/adithya1012/NASA-MCP-Server/issues"
+
+[project.scripts]
+nasa-mcp-server = "nasa_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
