@@ -3,10 +3,23 @@ import asyncio
 import sys
 from typing import Any
 from mcp.server.fastmcp import FastMCP
-from nasa_api import get_mars_image_definition
+from .nasa_api import get_mars_image_definition, get_astronomy_picture_of_the_day_tool
 
 # Create FastMCP server instance
 mcp = FastMCP("nasa-mcp-server")
+
+@mcp.tool()
+async def get_astronomy_picture_of_the_day_tool(date: Any = None, start_date: Any = None, end_date: Any = None, count: Any = None) -> str:
+    """
+    Gets the Astronomy Picture of the Day (APOD) from the NASA website.
+
+    Parameters:
+    date: (YYYY-MM-DD). default is today. The date of the APOD image to retrieve
+    start_date: (YYYY-MM-DD). default is none. The start of a date range, when requesting date for a range of dates. Cannot be used with date.
+    end_date: (YYYY-MM-DD).	default is today.The end of the date range, when used with start_date.
+    count:(int).default is none. If this is specified then count randomly chosen images will be returned. Cannot be used with date or start_date and end_date.
+    """
+    return await get_astronomy_picture_of_the_day_tool(date, start_date, end_date, count)
 
 @mcp.tool()
 async def get_mars_image_tool(earth_date: Any = None, sol: Any = None, camera: Any = None) -> str:
@@ -28,6 +41,7 @@ async def get_mars_image_tool(earth_date: Any = None, sol: Any = None, camera: A
             You can use any one of the camera value at a time.
     """
     return await get_mars_image_definition(earth_date, sol, camera)
+
 
 def main():
     """Main entry point for the server"""

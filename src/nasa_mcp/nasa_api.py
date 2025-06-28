@@ -9,23 +9,7 @@ NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
 base_api = "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?"
 
 async def get_mars_image_definition(earth_date: Any = None, sol: Any = None, camera: Any = None) -> str:
-    """Request to Mars Rover Image. Fetch any images on Mars Rover. Each rover has its own set of photos stored in the database, which can be queried separately. There are several possible queries that can be made against the API.
-    
-    Parameters:
-        - earth_date: (optional) Corresponding date on earth when the photo was taken. This should be in "YYYY-MM-DD" format. Default pass today's date
-        - sol: (optional) This is Martian sol of the Rover's mission. This is integer. Values can range from 0 to max found in endpoint. Default pass 1000.
-        - camera: (optional) Each camera has a unique function and perspective, and they are named as follows string:
-            FHAZ: Front Hazard Avoidance Camera
-            RHAZ: Rear Hazard Avoidance Camera
-            MAST: Mast Camera
-            CHEMCAM: Chemistry and Camera Complex
-            MAHLI: Mars Hand Lens Imager
-            MARDI: Mars Descent Imager
-            NAVCAM: Navigation Camera
-            PANCAM: Panoramic Camera
-            MINITES: Miniature Thermal Emission Spectrometer (Mini-TES)
-            You can use any one of the camera value at a time.
-    """
+    """Request to Mars Rover Image. Fetch any images on Mars Rover. Each rover has its own set of photos stored in the database, which can be queried separately. There are several possible queries that can be made against the API."""
     
     # Build parameters dictionary
     params = {}
@@ -94,6 +78,110 @@ async def get_mars_image_definition(earth_date: Any = None, sol: Any = None, cam
             result += f"Total photos available: {len(data['photos'])}"
             
             return result
+            
+    except httpx.TimeoutException:
+        return "Error: Request timed out. Please try again."
+    except httpx.HTTPStatusError as e:
+        return f"Error: HTTP {e.response.status_code}"
+    except Exception as e:
+        return f"Error: {str(e)}"
+    
+
+async def get_astronomy_picture_of_the_day_tool(date: Any = None, start_date: Any = None, end_date: Any = None, count: Any = None) -> str:
+    """Request to NASA Astronomy Picture of the Day API. Fetch astronomy pictures and their details."""
+    
+    # Build parameters dictionary
+    params = {}
+    
+    # Validate mutually exclusive parameters
+    if count is not None:
+        if date and (start_date or end_date):
+            return "Error: count cannot be used with date, start_date, or end_date"
+        if count <= 0:
+            return "Error: count must be a positive integer"
+        params["count"] = str(count)
+    elif start_date or end_date:
+        if date:
+            return "Error: date cannot be used with start_date or end_date"
+        
+        # Validate start_date
+        if start_date:
+            try:
+                datetime.datetime.strptime(start_date, "%Y-%m-%d")
+                params["start_date"] = start_date
+            except ValueError:
+                return "Error: start_date must be in YYYY-MM-DD format"
+        
+        # Validate end_date
+        if end_date:
+            try:
+                datetime.datetime.strptime(end_date, "%Y-%m-%d")
+                params["end_date"] = end_date
+            except ValueError:
+                return "Error: end_date must be in YYYY-MM-DD format"
+                
+    elif date:
+        # Validate single date
+        try:
+            datetime.datetime.strptime(date, "%Y-%m-%d")
+            params["date"] = date
+        except ValueError:
+            return "Error: date must be in YYYY-MM-DD format"
+    
+    # Build URL parameters string
+    param_url = ""
+    for param_key, param_value in params.items():
+        param_url += f"{param_key}={param_value}&"
+    
+    # Add API key
+    param_url += f"api_key={NASA_API_KEY}"
+    
+    # Complete URL
+    api_url = "https://api.nasa.gov/planetary/apod?" + param_url
+    
+    try:
+        # Make API request
+        async with httpx.AsyncClient() as client:
+            response = await client.get(api_url, timeout=30.0)
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            # Handle both single image and multiple images response
+            if isinstance(data, list):
+                # Multiple images (from count or date range)
+                if len(data) == 0:
+                    return "No APOD images found for the specified parameters"
+                
+                result = f"Found {len(data)} APOD images:\n\n"
+                for i, apod in enumerate(data, 1):
+                    result += f"--- Image {i} ---\n"
+                    result += f"Date: {apod.get('date', 'Unknown')}\n"
+                    result += f"Title: {apod.get('title', 'No title')}\n"
+                    
+                    # Use hdurl if available, otherwise url
+                    image_url = apod.get('hdurl') or apod.get('url', 'No image URL')
+                    result += f"Image URL: {image_url}\n"
+                    
+                    explanation = apod.get('explanation', 'No explanation available')
+                    result += f"Explanation: {explanation}\n\n"
+                
+                return result.strip()
+            
+            else:
+                # Single image
+                result = "NASA Astronomy Picture of the Day\n"
+                result += f"Date: {data.get('date', 'Unknown')}\n"
+                result += f"Title: {data.get('title', 'No title')}\n"
+                
+                # Use hdurl if available, otherwise url
+                image_url = data.get('hdurl') or data.get('url', 'No image URL')
+                result += f"Image URL: {image_url}\n"
+                
+                explanation = data.get('explanation', 'No explanation available')
+                result += f"Explanation: {explanation}"
+                
+                return result
             
     except httpx.TimeoutException:
         return "Error: Request timed out. Please try again."
