@@ -3,19 +3,31 @@ import asyncio
 import sys
 from typing import Any
 from mcp.server.fastmcp import FastMCP
-from nasa_api import get_mars_image_definition
+from .nasa_api import get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition
 
 # Create FastMCP server instance
 mcp = FastMCP("nasa-mcp-server")
 
 @mcp.tool()
-async def get_mars_image_tool(earth_date: Any = None, sol: Any = None, camera: Any = None) -> str:
+async def get_apod(date: Any = None, start_date: Any = None, end_date: Any = None, count: Any = None) -> str:
+    """Gets the Astronomy Picture of the Day (APOD) from the NASA website.
+
+    Parameters:
+    date: (YYYY-MM-DD). Default is today. The date of the APOD image to retrieve
+    start_date: (YYYY-MM-DD). Default is none. The start of a date range, when requesting date for a range of dates. Cannot be used with date.
+    end_date: (YYYY-MM-DD).	Default is today.The end of the date range, when used with start_date.
+    count: (int). Default is none. If this is specified then count randomly chosen images will be returned. Cannot be used with date or start_date and end_date.
+    """
+    return await get_astronomy_picture_of_the_day_tool_defnition(date, start_date, end_date, count)
+
+@mcp.tool()
+async def get_mars_image(earth_date: Any = None, sol: Any = None, camera: Any = None) -> str:
     """Request to Mars Rover Image. Fetch any images on Mars Rover. Each rover has its own set of photos stored in the database, which can be queried separately. There are several possible queries that can be made against the API.
     
     Parameters:
-        - earth_date: (optional) Corresponding date on earth when the photo was taken. This should be in "YYYY-MM-DD" format. Default pass today's date
-        - sol: (optional) This is Martian sol of the Rover's mission. This is integer. Values can range from 0 to max found in endpoint. Default pass 1000.
-        - camera: (optional) Each camera has a unique function and perspective, and they are named as follows string:
+        - earth_date: (YYYY-MM-DD). Corresponding date on earth when the photo was taken. This should be in "YYYY-MM-DD" format. Default pass today's date
+        - sol: (int). This is Martian sol of the Rover's mission. This is integer. Values can range from 0 to max found in endpoint. Default pass 1000.
+        - camera: (string) Each camera has a unique function and perspective, and they are named as follows string:
             FHAZ: Front Hazard Avoidance Camera
             RHAZ: Rear Hazard Avoidance Camera
             MAST: Mast Camera
@@ -28,6 +40,7 @@ async def get_mars_image_tool(earth_date: Any = None, sol: Any = None, camera: A
             You can use any one of the camera value at a time.
     """
     return await get_mars_image_definition(earth_date, sol, camera)
+
 
 def main():
     """Main entry point for the server"""
