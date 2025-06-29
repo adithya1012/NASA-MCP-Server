@@ -5,14 +5,12 @@ import httpx
 from mcp.server.fastmcp import FastMCP
 from mars_img import get_mars_image_definition
 from earth_img import get_earth_image_definition
+from APOD_tool import  get_astronomy_picture_of_the_day_tool_defnition
 
 mcp = FastMCP("weather")
 
 NWS_API_BASE = "https://api.weather.gov"
 USER_AGENT = "weather-app/1.0"
-
-MARS_BASE_API = "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?"
-NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
 
 async def make_nws_request(url):
     """Make request to NWS API with proper error handling"""
@@ -98,8 +96,22 @@ async def get_earth_image_tool(earth_date: Any = None, type: Any = None) -> str:
 
     return await get_earth_image_definition(earth_date, type)
 
+@mcp.tool()
+async def get_astronomy_picture_of_the_day_tool(date: Any = None, start_date: Any = None, end_date: Any = None, count: Any = None) -> str:
+    """
+    Gets the Astronomy Picture of the Day (APOD) from the NASA website.
+
+    Parameters:
+    date: (YYYY-MM-DD). Default is today. The date of the APOD image to retrieve
+    start_date: (YYYY-MM-DD). Default is none. The start of a date range, when requesting date for a range of dates. Cannot be used with date.
+    end_date: (YYYY-MM-DD).	Default is today.The end of the date range, when used with start_date.
+    count:(int). Default is none. If this is specified then count randomly chosen images will be returned. Cannot be used with date or start_date and end_date.
+    """
+    return await get_astronomy_picture_of_the_day_tool_defnition(date, start_date, end_date, count)
+
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    # mcp.run(transport="streamable-http")
+    mcp.run(transport="studio")
 
 
 # get_earth_image_tool(type="natural")
