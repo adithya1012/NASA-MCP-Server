@@ -1,126 +1,174 @@
 # NASA MCP Server
 
-A Python implementation of the Model Context Protocol (MCP) server, providing tool-enabled AI conversations via the [streamable-http transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http).
-
-The Frontend code for this project is present in the [MCP_Pilot](https://github.com/adithya1012/MCP_Pilot).
-
-## Project Structure
-
-```
-├── README.md
-├── Screenshot
-│   └── Mermaid Chart.png
-└── Server
-    ├── README.md
-    ├── main.py
-    ├── pyproject.toml
-    ├── tools
-    │   ├── aws_tools.py
-    │   ├── earth_img.py
-    │   ├── index.py
-    │   └── mars_img.py
-    └── uv.lock
-```
-
-## Architecture
-
-```mermaid
-flowchart LR
- subgraph MCP_Pilot["MCP_Pilot Repo"]
-    direction TB
-        A["Chatbot UI"]
-        B["MCP Client"]
-        F["LLM"]
-  end
- subgraph MCP_Server["MCP Server"]
-        C["Mars Rover Image Tool"]
-        D["Earth Image Tool"]
-        E["Weather Tool"]
-  end
- subgraph NASA_MCP_Server["NASA_MCP_Server Repo"]
-    direction TB
-        MCP_Server
-  end
-    A -- Prompt --> B
-    B -- Prompt + Tools info --> F
-    F -- Tool choice + params --> B
-    B -- Final result --> A
-    F -- Final Result --> B
-    B -- Get available tools --> MCP_Server
-    MCP_Server -- Tools info --> B
-    B -- Execute tool --> MCP_Server
-    MCP_Server -- Tool result --> B
-    B -- Tool Result --> F
-
-    style MCP_Server stroke-width:2px,stroke:#888
-    style MCP_Pilot stroke-width:2px,stroke:#FF4136
-    style NASA_MCP_Server stroke-width:2px,stroke:#FF4136
-
-
-```
-
-## YouTube Updates
-
-| Description                                                       | YouTube Short                                                                  | Commit/PR                                                                                                   | Date                                                                                                                                                                                                                                                                       |
-| ----------------------------------------------------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Commit Mermaid diagram on the MCP Chatbot                         | [Watch](https://youtube.com/shorts/YSOqYVHAsjg)                                | [Commit](https://github.com/adithya1012/MIE_ChatBot/commit/b00f89d741af162aeba4b8f16b3669898979d265)        | [June 18](https://docs.google.com/document/d/1RGVLmfMQ1EpN2uXK2a6YLVcGXwu7ZrbIWCEe7AmRHBc/edit?pli=1&tab=t.0#heading=h.mrf11jp1gp4)                                                                                                                                        |
-| Vite Learning                                                     | [Watch](https://youtube.com/shorts/EZeK7EcgFY4)                                | [PR](https://github.com/adithya1012/Learning/pull/1)                                                        | [June 17](https://docs.google.com/document/d/1RGVLmfMQ1EpN2uXK2a6YLVcGXwu7ZrbIWCEe7AmRHBc/edit?pli=1&tab=t.0#heading=h.f3pej13xvumg)                                                                                                                                       |
-| MCP chatbot architecture and Clean up folder structure.           | [Watch](https://youtube.com/shorts/Ib9I8vepgPY)                                | [PR1](https://github.com/adithya1012/MIE_ChatBot/pull/18), [PR2](https://github.com/adithya1012/MCP/pull/1) | [June 14](https://docs.google.com/document/d/1RGVLmfMQ1EpN2uXK2a6YLVcGXwu7ZrbIWCEe7AmRHBc/edit?pli=1&tab=t.0#heading=h.8pcaemy93me2), [June 16](https://docs.google.com/document/d/1RGVLmfMQ1EpN2uXK2a6YLVcGXwu7ZrbIWCEe7AmRHBc/edit?pli=1&tab=t.0#heading=h.4kqr6yuqq850) |
-| UI for MCP architecture demo                                      | [Watch](https://youtube.com/shorts/l_go1mo4wHY)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| MCP backend API testing Postman                                   | [Watch](https://youtube.com/shorts/qY5o8yI-bZQ)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| Simple CMD line interaction with MCP architecture.                | [Watch](https://youtube.com/shorts/3tGSEd2r8D0)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| MCP - Inspector 🚓🚨                                              | [Watch](https://youtube.com/shorts/URPhnDYoKq4)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| MCP client (TypeScript/Node) server (python) with🌡️ Weather tool. | [Watch](https://youtube.com/shorts/TJvB7dl9_8Y)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| MCP architecture diagram                                          | [Watch](https://youtube.com/shorts/NlC0rGRSANQ)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| VS code copilot MCP tool attachment in agent mode                 | [Watch](https://youtube.com/shorts/5t2vZ07zfus)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| Simple MCP                                                        | [Watch](https://youtube.com/shorts/JYjJavez4Xo)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| Mars Image API integration:                                       | [Watch](https://youtube.com/shorts/LMLNdOsZnFk)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| Earth Image API integration:                                      | [Watch](https://youtube.com/shorts/WJMUf-ZXRyQ)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| YAML File Integration                                             | [Watch](https://youtube.com/shorts/CovI4RM3zrg)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| MultiTool Integration + Chat history                              | [Watch](https://youtube.com/shorts/J4uz3EOss80)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| LLM Response Parsing (XML)                                        | [Watch](https://youtube.com/shorts/CCQt4RiIYJE)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| Exploring NASA APIs                                               | [Watch](https://youtube.com/shorts/cBbhRo6dW5E)                                |                                                                                                             |                                                                                                                                                                                                                                                                            |
-| Other                                                             | [Watch1](https://youtu.be/GklINnKCvQs), [Watch2](https://youtu.be/90mmfmDyxn8) |                                                                                                             |                                                                                                                                                                                                                                                                            |
-
-## Setup Instructions
-
-### 1. Create and Activate Virtual Environment
-
-```bash
-uv venv
-source .venv/bin/activate
-```
-
-### 2. Install Dependencies
-
-```bash
-uv add "mcp[cli]"
-```
-
-### 3. Run the MCP Server
-
-```bash
-python Server/tools/index.py
-```
-
-The server will start using the [streamable-http transport](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http) and expose an HTTP endpoint at:
-
-```
-http://127.0.0.1:8000
-```
-
-## Usage
-
-Once running, you can interact with the MCP server by sending HTTP requests to the endpoint above, following the [MCP streamable-http specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http).
-
-You can extend the server by adding new tools in the `Server/tools/` directory.
+A Model Context Protocol (MCP) server that provides access to NASA's public APIs, including Astronomy Picture of the Day (APOD), Mars Rover Images, and Near Earth Objects (NEO) data.
 
 ## Features
 
-- **MCP Server**: Implements the MCP protocol for tool-enabled AI workflows.
-- **Streamable HTTP Transport**: Exposes an HTTP endpoint for easy integration.
-- **Extensible Tools**: Add your own tools in the `Server/tools/` directory.
+- **Astronomy Picture of the Day (APOD)**: Get daily astronomy images with descriptions
+- **Mars Rover Images**: Access photos from Mars rovers with various camera options
+- **Near Earth Objects (NEO)**: Retrieve asteroid data and close approach information
 
-## Reference
+## Installation
 
-- [MCP Streamable HTTP Transport Specification](https://modelcontextprotocol.io/specification/2025-03-26/basic/transports#streamable-http)
+Install the package from PyPI:
+
+```bash
+pip install nasa-mcp-server
+```
+
+Or using uvx (recommended for MCP usage):
+
+```bash
+uvx nasa-mcp-server
+```
+
+## Setup
+
+### Get NASA API Key
+
+1. Visit [NASA API Portal](https://api.nasa.gov/)
+2. Generate your free API key
+3. Keep the API key handy for configuration
+
+### VS Code Configuration
+
+Add the following to your VS Code `mcp.json` configuration file:
+
+```json
+{
+  "servers": {
+    "nasa-mcp": {
+      "command": "uvx",
+      "args": ["nasa-mcp-server"],
+      "env": {
+        "NASA_API_KEY": "YOUR_NASA_API_KEY_HERE"
+      }
+    }
+  }
+}
+```
+
+Replace `YOUR_NASA_API_KEY_HERE` with your actual NASA API key.
+
+### Claude Desktop Configuration
+
+Add the following to your Claude Desktop configuration:
+
+**Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
+**macOS**: `~/Library/Application\ Support/Claude/claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "nasa-mcp": {
+      "command": "uvx",
+      "args": ["nasa-mcp-server"],
+      "env": {
+        "NASA_API_KEY": "YOUR_NASA_API_KEY_HERE"
+      }
+    }
+  }
+}
+```
+
+Replace `YOUR_NASA_API_KEY_HERE` with your actual NASA API key.
+
+## Available Tools
+
+### 1. get_apod - Astronomy Picture of the Day
+
+Get stunning astronomy images with detailed descriptions from NASA's APOD service.
+
+**Parameters:**
+
+- `date` (YYYY-MM-DD): Specific date for APOD image (default: today)
+- `start_date` (YYYY-MM-DD): Start date for date range (cannot be used with `date`)
+- `end_date` (YYYY-MM-DD): End date for date range (default: today)
+- `count` (int): Number of random images to retrieve (cannot be used with date parameters)
+
+**Example Usage:**
+
+- Get today's APOD: `get_apod()`
+- Get APOD for specific date: `get_apod(date="2024-01-15")`
+- Get APOD for date range: `get_apod(start_date="2024-01-01", end_date="2024-01-07")`
+- Get 5 random APODs: `get_apod(count=5)`
+
+### 2. get_mars_image - Mars Rover Images
+
+Access photos taken by Mars rovers with various camera perspectives.
+
+**Parameters:**
+
+- `earth_date` (YYYY-MM-DD): Earth date when photo was taken (default: today)
+- `sol` (int): Martian sol (day) of the rover's mission (default: 1000)
+- `camera` (string): Camera type to use
+
+**Available Cameras:**
+
+- `FHAZ`: Front Hazard Avoidance Camera
+- `RHAZ`: Rear Hazard Avoidance Camera
+- `MAST`: Mast Camera
+- `CHEMCAM`: Chemistry and Camera Complex
+- `MAHLI`: Mars Hand Lens Imager
+- `MARDI`: Mars Descent Imager
+- `NAVCAM`: Navigation Camera
+- `PANCAM`: Panoramic Camera
+- `MINITES`: Miniature Thermal Emission Spectrometer (Mini-TES)
+
+**Example Usage:**
+
+- Get images from today: `get_mars_image()`
+- Get images from specific Earth date: `get_mars_image(earth_date="2024-01-15")`
+- Get images from specific sol: `get_mars_image(sol=500)`
+- Get images from specific camera: `get_mars_image(camera="MAST")`
+
+### 3. get_neo_feed - Near Earth Objects
+
+Retrieve information about asteroids and their close approaches to Earth.
+
+**Parameters:**
+
+- `start_date` (YYYY-MM-DD): Start date for asteroid search (default: today)
+- `end_date` (YYYY-MM-DD): End date for asteroid search (default: 7 days after start_date)
+- `limit_per_day` (int): Maximum number of asteroids to show per day (default: 2)
+
+**Note:** Maximum date range is 7 days as per NASA API limitations.
+
+**Example Usage:**
+
+- Get next 7 days of NEO data: `get_neo_feed()`
+- Get NEO data for specific date range: `get_neo_feed(start_date="2024-01-15", end_date="2024-01-20")`
+- Limit results per day: `get_neo_feed(limit_per_day=5)`
+
+## Error Handling
+
+The server includes comprehensive error handling for:
+
+- Invalid date formats
+- Network timeouts
+- Invalid API keys
+- NASA API-specific errors
+
+## Requirements
+
+- Python 3.8+
+- NASA API key (free from [NASA API Portal](https://api.nasa.gov/))
+- Internet connection for API access
+
+## Links
+
+- **PyPI Package**: https://pypi.org/project/nasa-mcp-server/
+- **NASA API Documentation**: https://api.nasa.gov/
+- **MCP Documentation**: https://modelcontextprotocol.io/
+
+## Support
+
+For issues and support, please visit the package repository or NASA API documentation for API-related questions.
+
+## License
+
+This project uses NASA's public APIs. Please refer to NASA's API terms of service for usage guidelines.
+
+## Developper
+
+I am Adithya. I developped this package as part of the internship project. Wanted to talk more, shoot me an email at adithyasn7@gmail.com
