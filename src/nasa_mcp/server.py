@@ -3,7 +3,7 @@ import asyncio
 import sys
 from typing import Any
 from mcp.server.fastmcp import FastMCP
-from .nasa_api import get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition
+from .nasa_api import get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition
 
 # Create FastMCP server instance
 mcp = FastMCP("nasa-mcp-server")
@@ -41,6 +41,19 @@ async def get_mars_image(earth_date: Any = None, sol: Any = None, camera: Any = 
     """
     return await get_mars_image_definition(earth_date, sol, camera)
 
+
+@mcp.tool()
+async def get_neo_feed(start_date: Any = None, end_date: Any = None, limit_per_day: int = 2) -> str:
+    """Gets Near Earth Objects (NEO) data from NASA's NeoWs API.
+    Retrieves a list of asteroids based on their closest approach date to Earth.
+    Maximum date range is 7 days. If no dates provided, returns next 7 days.
+    
+    Parameters:
+    start_date: (YYYY-MM-DD). Default is today. The starting date for asteroid search
+    end_date: (YYYY-MM-DD). Default is 7 days after start_date. The ending date for asteroid search
+    limit_per_day: (int). Default is 2. Maximum number of asteroids to show per day to limit output size
+    """
+    return await get_neo_feed_definition(start_date, end_date, limit_per_day)
 
 def main():
     """Main entry point for the server"""

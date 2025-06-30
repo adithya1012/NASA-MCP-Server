@@ -5,6 +5,7 @@ import httpx
 from mcp.server.fastmcp import FastMCP
 from mars_img import get_mars_image_definition
 from earth_img import get_earth_image_definition
+from NeoWs_tool import get_neo_feed_definition
 from APOD_tool import  get_astronomy_picture_of_the_day_tool_defnition
 
 mcp = FastMCP("weather")
@@ -108,6 +109,20 @@ async def get_astronomy_picture_of_the_day_tool(date: Any = None, start_date: An
     count:(int). Default is none. If this is specified then count randomly chosen images will be returned. Cannot be used with date or start_date and end_date.
     """
     return await get_astronomy_picture_of_the_day_tool_defnition(date, start_date, end_date, count)
+
+@mcp.tool()
+async def get_neo_feed(start_date: Any = None, end_date: Any = None, limit_per_day: int = 2) -> str:
+    """Gets Near Earth Objects (NEO) data from NASA's NeoWs API.
+    
+    Retrieves a list of asteroids based on their closest approach date to Earth.
+    Maximum date range is 7 days. If no dates provided, returns next 7 days.
+    
+    Parameters:
+    start_date: (YYYY-MM-DD). Default is today. The starting date for asteroid search
+    end_date: (YYYY-MM-DD). Default is 7 days after start_date. The ending date for asteroid search
+    limit_per_day: (int). Default is 2. Maximum number of asteroids to show per day to limit output size
+    """
+    return await get_neo_feed_definition(start_date, end_date, limit_per_day)
 
 if __name__ == "__main__":
     # mcp.run(transport="streamable-http")
