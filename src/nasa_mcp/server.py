@@ -3,7 +3,7 @@ import asyncio
 import sys
 from typing import Any
 from mcp.server.fastmcp import FastMCP
-from .nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition
+from .nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
 
 # Create FastMCP server instance
 mcp = FastMCP("nasa-mcp-server")
@@ -106,6 +106,18 @@ async def get_gibs_image(
 async def get_gibs_layers() -> str:
     """Get information about available GIBS layers and their capabilities."""
     return await get_gibs_layers_definition()
+
+@mcp.tool()
+async def get_image_analyze(image_url: str, max_size: int = 1024, quality: int = 85) -> str:
+    """Fetch an image from URL and convert it to base64 for LLM analysis.
+    Args:
+        image_url: The URL of the image to analyze. (str)
+        max_size: Maximum image size in pixels (width or height). Default: 1024
+        quality: JPEG quality for compression (1-100). Default: 85
+    Returns:
+        Dict containing base64 image data and metadata
+    """
+    return await mcp_analyze_image_tool_definition(image_url, max_size, quality)
 
 def main():
     """Main entry point for the server"""

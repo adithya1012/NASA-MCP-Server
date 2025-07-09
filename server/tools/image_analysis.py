@@ -1,7 +1,12 @@
+import datetime
+import os
+from typing import Any, Dict, Union
+import httpx
 import base64
 import requests
 import io
 from PIL import Image
+import mcp.types as types
 
 def analyze_image_from_url(image_url: str, max_size: int = 1024, quality: int = 85) -> dict:
     """
@@ -75,46 +80,74 @@ def analyze_image_from_url(image_url: str, max_size: int = 1024, quality: int = 
     except Exception as e:
         return {"success": False, "error": f"Error processing image: {str(e)}"}
 
-# Example usage for your MCP tool:
-async def mcp_analyze_image_tool_definition(image_url: str, max_size: int = 1024, quality: int = 85):
+# CORRECTED VERSION - Returns list of MCP content types
+async def mcp_analyze_image_tool_definition(image_url: str, max_size: int = 1024, quality: int = 85) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
     """
     MCP tool function that returns the image in a format the LLM can analyze.
     """
     result = analyze_image_from_url(image_url, max_size, quality)
     
     if result["success"]:
-        return {
-            "type": "resource",
-            "resource": {
-                "uri": result["data_uri"],
-                "mimeType": result["mime_type"],
-                "name": "Image for Analysis"
-            },
-            "metadata": {
-                "original_url": result["original_url"],
-                "dimensions": f"{result['processed_dimensions'][0]}×{result['processed_dimensions'][1]}",
-                "original_size": f"{result['original_size_bytes']:,} bytes",
-                "compressed_size": f"{result['compressed_size_bytes']:,} bytes",
-                "compression_ratio": f"{result['compression_ratio']:.1f}%"
-            }
-        }
-    else:
-        return {
-            "type": "text",
-            "text": f"Error: {result['error']}"
-        }
-    
+        return [
+            types.ImageContent(
+                type="image",
+                data=result["base64_data"],
+                mimeType=result["mime_type"]
+            ),
+            types.TextContent(
+                type="text",
+                text=f"""Image Analysis Ready!
 
-if __name__ == "__main__":
-    # Test with a sample URL
-    # test_url = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&BBOX=-10,30,40,50&WIDTH=512&HEIGHT=512&FORMAT=image/png&CRS=EPSG:4326&TIME=2023-07-01"
-    test_url = "https://apod.nasa.gov/apod/image/2507/Trifid2048.jpg"
-    
-    result = analyze_image_from_url(test_url)
-    if result["success"]:
-        print(f"Success! Image converted to base64.")
-        print(f"Original: {result['original_dimensions']} -> Processed: {result['processed_dimensions']}")
-        print(f"Size: {result['original_size_bytes']:,} -> {result['compressed_size_bytes']:,} bytes")
-        print(f"Base64 length: {len(result['base64_data'])} characters")
+**Original URL:** {result['original_url']}
+**Original Dimensions:** {result['original_dimensions'][0]}×{result['original_dimensions'][1]} pixels
+**Processed Dimensions:** {result['processed_dimensions'][0]}×{result['processed_dimensions'][1]} pixels
+**Format:** {result['mime_type']}
+**Original Size:** {result['original_size_bytes']:,} bytes
+**Compressed Size:** {result['compressed_size_bytes']:,} bytes
+**Compression Ratio:** {result['compression_ratio']:.1f}%
+
+The image has been processed and is ready for analysis. The LLM can now analyze the visual content, identify features, objects, patterns, and provide detailed insights about what's shown in the image."""
+            )
+        ]
     else:
-        print(f"Error: {result['error']}")
+        return [
+            types.TextContent(
+                type="text",
+                text=f"Error: {result['error']}"
+            )
+        ]
+
+
+# if __name__ == "__main__":
+#     import asyncio
+    
+#     async def test_image_analysis():
+#         # Test with a sample URL
+#         # test_url = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&BBOX=-10,30,40,50&WIDTH=512&HEIGHT=512&FORMAT=image/png&CRS=EPSG:4326&TIME=2023-07-01"
+#         # test_url = "https://apod.nasa.gov/apod/image/2507/Trifid2048.jpg"
+#         test_url = "https://apod.nasa.gov/apod/image/2507/Trifid2048.jpg"
+
+#         # Using the synchronous version for testing
+#         result = analyze_image_from_url(test_url)
+        
+#         if result["success"]:
+#             print(f"Success! Image converted to base64.")
+#             print(f"Original: {result['original_dimensions']} -> Processed: {result['processed_dimensions']}")
+#             print(f"Size: {result['original_size_bytes']:,} -> {result['compressed_size_bytes']:,} bytes")
+#             print(f"Base64 length: {len(result['base64_data'])} characters")
+#             print(f"Compression ratio: {result['compression_ratio']:.1f}%")
+#         else:
+#             print(f"Error: {result['error']}")
+        
+#         # Also test the async version
+#         print("\n--- Testing async version ---")
+#         async_result = await mcp_analyze_image_tool_definition(test_url)
+#         print(f"Async result type: {async_result['type']}")
+#         if async_result['type'] == 'resource':
+#             print(f"Resource URI: {async_result['resource']['uri'][:100]}...")
+#             print(f"Metadata: {async_result['metadata']}")
+#         else:
+#             print(f"Text result: {async_result['text']}")
+    
+#     # Run the async test
+#     asyncio.run(test_image_analysis())
