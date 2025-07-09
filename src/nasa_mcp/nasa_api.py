@@ -8,6 +8,7 @@ import requests
 import io
 from PIL import Image
 import mcp.types as types
+import json
 
 # Get NASA API key from environment variable (set by MCP client)
 NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
@@ -665,8 +666,8 @@ async def get_gibs_image_definition(
             description += f"Layer: {layer}\n"
             description += f"Date: {date if date else 'Most recent available'}\n"
             description += f"Bounding Box: {bbox}\n"
-            description += f"Coverage Area: {area_width:.2f}° longitude × {area_height:.2f}° latitude\n"
-            description += f"Image Size: {width}×{height} pixels\n"
+            description += f"Coverage Area: {area_width:.2f}° longitude * {area_height:.2f}° latitude\n"
+            description += f"Image Size: {width}*{height} pixels\n"
             description += f"Format: {format}\n"
             description += f"Projection: {projection.upper()}\n"
             description += f"Image Size: {len(response.content)} bytes"
@@ -852,7 +853,7 @@ async def get_gibs_layers_definition() -> str:
 #             },
 #             "metadata": {
 #                 "original_url": result["original_url"],
-#                 "dimensions": f"{result['processed_dimensions'][0]}×{result['processed_dimensions'][1]}",
+#                 "dimensions": f"{result['processed_dimensions'][0]}*{result['processed_dimensions'][1]}",
 #                 "original_size": f"{result['original_size_bytes']:,} bytes",
 #                 "compressed_size": f"{result['compressed_size_bytes']:,} bytes",
 #                 "compression_ratio": f"{result['compression_ratio']:.1f}%"
@@ -944,34 +945,31 @@ async def mcp_analyze_image_tool_definition(image_url: str, max_size: int = 1024
     result = analyze_image_from_url(image_url, max_size, quality)
     
     if result["success"]:
-        return [
-            types.ImageContent(
-                type="image",
-                data=result["base64_data"],
-                mimeType=result["mime_type"]
-            ),
-            types.TextContent(
-                type="text",
-                text=f"""Image Analysis Ready!
-
-**Original URL:** {result['original_url']}
-**Original Dimensions:** {result['original_dimensions'][0]}×{result['original_dimensions'][1]} pixels
-**Processed Dimensions:** {result['processed_dimensions'][0]}×{result['processed_dimensions'][1]} pixels
-**Format:** {result['mime_type']}
-**Original Size:** {result['original_size_bytes']:,} bytes
-**Compressed Size:** {result['compressed_size_bytes']:,} bytes
-**Compression Ratio:** {result['compression_ratio']:.1f}%
-
-The image has been processed and is ready for analysis. The LLM can now analyze the visual content, identify features, objects, patterns, and provide detailed insights about what's shown in the image."""
-            )
-        ]
+        # Return structured data that includes the base64 image
+        response_data = {
+            "status": "success",
+            "message": "Image processed successfully for analysis",
+            "image_data": {
+                "base64": result["base64_data"],
+                "mime_type": result["mime_type"],
+                "data_uri": result["data_uri"]
+            },
+            "metadata": {
+                "original_url": result["original_url"],
+                "original_dimensions": f"{result['original_dimensions'][0]}*{result['original_dimensions'][1]}",
+                "processed_dimensions": f"{result['processed_dimensions'][0]}*{result['processed_dimensions'][1]}",
+                "original_size": f"{result['original_size_bytes']:,} bytes",
+                "compressed_size": f"{result['compressed_size_bytes']:,} bytes",
+                "compression_ratio": f"{result['compression_ratio']:.1f}%"
+            }
+        }
+        return json.dumps(response_data, indent=2)
     else:
-        return [
-            types.TextContent(
-                type="text",
-                text=f"Error: {result['error']}"
-            )
-        ]
+        error_response = {
+            "status": "error",
+            "message": result["error"]
+        }
+        return json.dumps(error_response, indent=2)
 
 
 # if __name__ == "__main__":
