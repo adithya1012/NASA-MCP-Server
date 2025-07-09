@@ -1,7 +1,7 @@
 # src/nasa_mcp/nasa_api.py
 import datetime
 import os
-from typing import Any
+from typing import Any, Dict, Union
 import httpx
 
 # Get NASA API key from environment variable (set by MCP client)
@@ -67,19 +67,21 @@ async def get_mars_image_definition(earth_date: Any = None, sol: Any = None, cam
             if not data.get("photos") or len(data["photos"]) == 0:
                 return "No images are found for the specified parameters"
             
-            # Return first image URL
+            # Return first image URL and info
             first_image_url = data["photos"][0]["img_src"]
-            
-            # Optional: return additional info
             photo_info = data["photos"][0]
-            result = f"Mars Rover Image Found!\n"
-            result += f"Image URL: {first_image_url}\n"
-            result += f"Camera: {photo_info['camera']['full_name']} ({photo_info['camera']['name']})\n"
-            result += f"Earth Date: {photo_info['earth_date']}\n"
-            result += f"Sol: {photo_info['sol']}\n"
-            result += f"Total photos available: {len(data['photos'])}"
             
-            return result
+            # Build consistent response format
+            result = {
+                "description": f"Mars Rover Image Found!\nCamera: {photo_info['camera']['full_name']} ({photo_info['camera']['name']})\nEarth Date: {photo_info['earth_date']}\nSol: {photo_info['sol']}\nTotal photos available: {len(data['photos'])}",
+                "resource": {
+                    "uri": first_image_url,
+                    "mimeType": "image/jpeg",
+                    "name": f"Mars_Rover_{photo_info['camera']['name']}_{photo_info['earth_date']}_Sol{photo_info['sol']}"
+                }
+            }
+            
+            return str(result)
             
     except httpx.TimeoutException:
         return "Error: Request timed out. Please try again."
@@ -156,35 +158,63 @@ async def get_astronomy_picture_of_the_day_tool_defnition(date: Any = None, star
                 if len(data) == 0:
                     return "No APOD images found for the specified parameters"
                 
-                result = f"Found {len(data)} APOD images:\n\n"
-                for i, apod in enumerate(data, 1):
-                    result += f"--- Image {i} ---\n"
-                    result += f"Date: {apod.get('date', 'Unknown')}\n"
-                    result += f"Title: {apod.get('title', 'No title')}\n"
-                    
-                    # Use hdurl if available, otherwise url
-                    image_url = apod.get('hdurl') or apod.get('url', 'No image URL')
-                    result += f"Image URL: {image_url}\n"
-                    
-                    explanation = apod.get('explanation', 'No explanation available')
-                    result += f"Explanation: {explanation}\n\n"
+                # For multiple images, return the first one with info about others
+                first_apod = data[0]
+                image_url = first_apod.get('hdurl') or first_apod.get('url', '')
                 
-                return result.strip()
+                # Determine mime type based on URL
+                mime_type = "image/jpeg"
+                if image_url.lower().endswith('.png'):
+                    mime_type = "image/png"
+                elif image_url.lower().endswith('.gif'):
+                    mime_type = "image/gif"
+                elif 'youtube.com' in image_url.lower() or 'vimeo.com' in image_url.lower():
+                    mime_type = "video/mp4"
+                
+                description = f"Found {len(data)} APOD images. Showing first image:\n"
+                description += f"Date: {first_apod.get('date', 'Unknown')}\n"
+                description += f"Title: {first_apod.get('title', 'No title')}\n"
+                description += f"Explanation: {first_apod.get('explanation', 'No explanation available')}"
+                
+                result = {
+                    "description": description,
+                    "resource": {
+                        "uri": image_url,
+                        "mimeType": mime_type,
+                        "name": f"APOD_{first_apod.get('date', 'unknown')}_{first_apod.get('title', 'untitled').replace(' ', '_')[:50]}"
+                    }
+                }
+                
+                return str(result)
             
             else:
                 # Single image
-                result = "NASA Astronomy Picture of the Day\n"
-                result += f"Date: {data.get('date', 'Unknown')}\n"
-                result += f"Title: {data.get('title', 'No title')}\n"
+                image_url = data.get('hdurl') or data.get('url', '')
                 
-                # Use hdurl if available, otherwise url
-                image_url = data.get('hdurl') or data.get('url', 'No image URL')
-                result += f"Image URL: {image_url}\n"
+                # Determine mime type based on URL
+                mime_type = "image/jpeg"
+                if image_url.lower().endswith('.png'):
+                    mime_type = "image/png"
+                elif image_url.lower().endswith('.gif'):
+                    mime_type = "image/gif"
+                elif 'youtube.com' in image_url.lower() or 'vimeo.com' in image_url.lower():
+                    mime_type = "video/mp4"
                 
-                explanation = data.get('explanation', 'No explanation available')
-                result += f"Explanation: {explanation}"
+                description = f"NASA Astronomy Picture of the Day\n"
+                description += f"Date: {data.get('date', 'Unknown')}\n"
+                description += f"Title: {data.get('title', 'No title')}\n"
+                description += f"Explanation: {data.get('explanation', 'No explanation available')}"
                 
-                return result
+                result = {
+                    "description": description,
+                    "resource": {
+                        "uri": image_url,
+                        "mimeType": mime_type,
+                        "name": f"APOD_{data.get('date', 'unknown')}_{data.get('title', 'untitled').replace(' ', '_')[:50]}"
+                    }
+                }
+                
+                return str(result)
             
     except httpx.TimeoutException:
         return "Error: Request timed out. Please try again."
@@ -266,16 +296,17 @@ async def get_neo_feed_definition(start_date: Any = None, end_date: Any = None, 
             if element_count == 0:
                 return "No Near Earth Objects found for the specified date range"
             
-            result = f"NASA Near Earth Objects (NEO) Feed\n"
-            result += f"Total asteroids found: {element_count}\n"
-            result += f"Showing up to {limit_per_day} asteroids per day\n"
+            # Build description with summary and detailed info
+            description = f"NASA Near Earth Objects (NEO) Feed\n"
+            description += f"Total asteroids found: {element_count}\n"
+            description += f"Showing up to {limit_per_day} asteroids per day\n"
             
             # Add date range info
             if params:
                 date_range = f"Date range: {params.get('start_date', 'auto')} to {params.get('end_date', 'auto')}"
             else:
                 date_range = "Date range: Next 7 days (default)"
-            result += f"{date_range}\n\n"
+            description += f"{date_range}\n\n"
             
             # Process each date's asteroids (limited per day)
             total_shown = 0
@@ -284,12 +315,12 @@ async def get_neo_feed_definition(start_date: Any = None, end_date: Any = None, 
                 limited_asteroids = asteroids[:limit_per_day]
                 total_shown += len(limited_asteroids)
                 
-                result += f"=== {date_str} ({len(asteroids)} asteroids total, showing {len(limited_asteroids)}) ===\n"
+                description += f"=== {date_str} ({len(asteroids)} asteroids total, showing {len(limited_asteroids)}) ===\n"
                 
                 for i, asteroid in enumerate(limited_asteroids, 1):
-                    result += f"\n--- Asteroid {i} ---\n"
-                    result += f"Name: {asteroid.get('name', 'Unknown')}\n"
-                    result += f"Absolute Magnitude: {asteroid.get('absolute_magnitude_h', 'Unknown')}\n"
+                    description += f"\n--- Asteroid {i} ---\n"
+                    description += f"Name: {asteroid.get('name', 'Unknown')}\n"
+                    description += f"Absolute Magnitude: {asteroid.get('absolute_magnitude_h', 'Unknown')}\n"
                     
                     # Diameter estimates
                     diameter = asteroid.get('estimated_diameter', {})
@@ -297,52 +328,62 @@ async def get_neo_feed_definition(start_date: Any = None, end_date: Any = None, 
                     if km_diameter:
                         min_km = km_diameter.get('estimated_diameter_min', 0)
                         max_km = km_diameter.get('estimated_diameter_max', 0)
-                        result += f"Estimated Diameter: {min_km:.3f} - {max_km:.3f} km\n"
+                        description += f"Estimated Diameter: {min_km:.3f} - {max_km:.3f} km\n"
                     
                     # Hazard status
                     is_hazardous = asteroid.get('is_potentially_hazardous_asteroid', False)
-                    result += f"Potentially Hazardous: {'Yes' if is_hazardous else 'No'}\n"
+                    description += f"Potentially Hazardous: {'Yes' if is_hazardous else 'No'}\n"
                     
                     # Close approach data
                     close_approach = asteroid.get('close_approach_data', [])
                     if close_approach:
                         approach = close_approach[0]  # Get the first (closest) approach
-                        result += f"Close Approach Date: {approach.get('close_approach_date_full', 'Unknown')}\n"
+                        description += f"Close Approach Date: {approach.get('close_approach_date_full', 'Unknown')}\n"
                         
                         # Velocity
                         velocity = approach.get('relative_velocity', {})
                         if velocity:
                             km_per_hour = velocity.get('kilometers_per_hour', 'Unknown')
-                            result += f"Relative Velocity: {km_per_hour} km/h\n"
+                            description += f"Relative Velocity: {km_per_hour} km/h\n"
                         
                         # Miss distance
                         miss_distance = approach.get('miss_distance', {})
                         if miss_distance:
                             km_distance = miss_distance.get('kilometers', 'Unknown')
                             lunar_distance = miss_distance.get('lunar', 'Unknown')
-                            result += f"Miss Distance: {km_distance} km ({lunar_distance} lunar distances)\n"
+                            description += f"Miss Distance: {km_distance} km ({lunar_distance} lunar distances)\n"
                         
-                        result += f"Orbiting Body: {approach.get('orbiting_body', 'Unknown')}\n"
+                        description += f"Orbiting Body: {approach.get('orbiting_body', 'Unknown')}\n"
                     
                     # NASA JPL URL for more details
                     jpl_url = asteroid.get('nasa_jpl_url', '')
                     if jpl_url:
-                        result += f"More Details: {jpl_url}\n"
+                        description += f"More Details: {jpl_url}\n"
                 
-                result += "\n"
+                description += "\n"
             
             # Add summary statistics
             hazardous_count = 0
             for asteroids in near_earth_objects.values():
                 hazardous_count += sum(1 for ast in asteroids if ast.get('is_potentially_hazardous_asteroid', False))
             
-            result += f"Summary:\n"
-            result += f"Total asteroids in feed: {element_count}\n"
-            result += f"Asteroids shown: {total_shown}\n"
-            result += f"Potentially hazardous asteroids (total): {hazardous_count}\n"
-            result += f"Non-hazardous asteroids (total): {element_count - hazardous_count}\n"
+            description += f"Summary:\n"
+            description += f"Total asteroids in feed: {element_count}\n"
+            description += f"Asteroids shown: {total_shown}\n"
+            description += f"Potentially hazardous asteroids (total): {hazardous_count}\n"
+            description += f"Non-hazardous asteroids (total): {element_count - hazardous_count}\n"
             
-            return result.strip()
+            # Return consistent format (no image for NEO data, so no resource)
+            result = {
+                "description": description.strip(),
+                "resource": {
+                    "uri": api_url,
+                    "mimeType": "application/json",
+                    "name": f"NEO_Feed_{params.get('start_date', 'auto')}_{params.get('end_date', 'auto')}"
+                }
+            }
+            
+            return str(result)
             
     except httpx.TimeoutException:
         return "Error: Request timed out. Please try again."
@@ -444,44 +485,47 @@ async def get_earth_image_definition(earth_date: Any = None, type: Any = None, l
             # Get the requested number of images (or all available if less than limit)
             images_to_process = data[:limit]
             
-            # Build result string
-            result = f"Earth Image{'s' if len(images_to_process) > 1 else ''} Found!!!!!!\n"
-            result += f"Image Type: {image_type.title()}\n"
-            result += f"Images returned: {len(images_to_process)} of {len(data)} available\n\n"
+            # For consistent format, return the first image with info about others
+            first_image = images_to_process[0]
+            image_date = first_image["date"]
+            image_name = first_image["image"]
+            caption = first_image.get("caption", "No caption available")
             
-            # Process each image
-            for i, image_data in enumerate(images_to_process, 1):
-                image_date = image_data["date"]
-                image_name = image_data["image"]
-                caption = image_data.get("caption", "No caption available")
-                
-                # Parse date to build archive URL
-                # Date format is typically "2015-10-31 00:36:33" or "2015-10-31"
-                date_parts = image_date.split("-")
-                year = date_parts[0]
-                month = date_parts[1]
-                
-                # Handle day extraction (might have time component)
-                day_part = date_parts[2]
-                if " " in day_part:
-                    day = day_part.split(" ")[0]
-                else:
-                    day = day_part
-                
-                # Build final image URL
-                final_image_url = f"https://epic.gsfc.nasa.gov/archive/{image_type}/{year}/{month}/{day}/png/{image_name}.png"
-                
-                # Add image information to result
-                result += f"Image {i}:\n"
-                result += f"  URL: {final_image_url}\n"
-                result += f"  Date: {image_date}\n"
-                result += f"  Caption: {caption}\n"
-                
-                # Add separator between images (except for the last one)
-                if i < len(images_to_process):
-                    result += "\n"
+            # Parse date to build archive URL
+            # Date format is typically "2015-10-31 00:36:33" or "2015-10-31"
+            date_parts = image_date.split("-")
+            year = date_parts[0]
+            month = date_parts[1]
             
-            return result + " " + param_url
+            # Handle day extraction (might have time component)
+            day_part = date_parts[2]
+            if " " in day_part:
+                day = day_part.split(" ")[0]
+            else:
+                day = day_part
+            
+            # Build final image URL for the first image
+            final_image_url = f"https://epic.gsfc.nasa.gov/archive/{image_type}/{year}/{month}/{day}/png/{image_name}.png"
+            
+            # Build description
+            description = f"Earth Image{'s' if len(images_to_process) > 1 else ''} Found!\n"
+            description += f"Image Type: {image_type.title()}\n"
+            description += f"Images returned: {len(images_to_process)} of {len(data)} available\n"
+            description += f"Showing first image:\n"
+            description += f"Date: {image_date}\n"
+            description += f"Caption: {caption}"
+            
+            # Return consistent format
+            result = {
+                "description": description,
+                "resource": {
+                    "uri": final_image_url,
+                    "mimeType": "image/png",
+                    "name": f"Earth_{image_type}_{year}{month}{day}_{image_name}"
+                }
+            }
+            
+            return str(result)
             
     except httpx.TimeoutException:
         return "Error: Request timed out. Please try again."
@@ -611,19 +655,28 @@ async def get_gibs_image_definition(
             area_width = abs(max_lon - min_lon)
             area_height = abs(max_lat - min_lat)
             
-            # Build result
-            result = f"GIBS Satellite Image Retrieved!\n"
-            result += f"Image URL: {final_url}\n"
-            result += f"Layer: {layer}\n"
-            result += f"Date: {date if date else 'Most recent available'}\n"
-            result += f"Bounding Box: {bbox}\n"
-            result += f"Coverage Area: {area_width:.2f}° longitude × {area_height:.2f}° latitude\n"
-            result += f"Image Size: {width}×{height} pixels\n"
-            result += f"Format: {format}\n"
-            result += f"Projection: {projection.upper()}\n"
-            result += f"Image Size: {len(response.content)} bytes"
+            # Build description
+            description = f"GIBS Satellite Image Retrieved!\n"
+            description += f"Layer: {layer}\n"
+            description += f"Date: {date if date else 'Most recent available'}\n"
+            description += f"Bounding Box: {bbox}\n"
+            description += f"Coverage Area: {area_width:.2f}° longitude × {area_height:.2f}° latitude\n"
+            description += f"Image Size: {width}×{height} pixels\n"
+            description += f"Format: {format}\n"
+            description += f"Projection: {projection.upper()}\n"
+            description += f"Image Size: {len(response.content)} bytes"
             
-            return result
+            # Return consistent format
+            result = {
+                "description": description,
+                "resource": {
+                    "uri": final_url,
+                    "mimeType": format,
+                    "name": f"GIBS_{layer}_{date if date else 'latest'}_{width}x{height}"
+                }
+            }
+            
+            return str(result)
             
     except httpx.TimeoutException:
         return "Error: Request timed out. Please try again."
@@ -670,28 +723,38 @@ async def get_gibs_layers_definition() -> str:
         ]
     }
     
-    result = "Available GIBS Layers:\n\n"
+    description = "Available GIBS Layers:\n\n"
     
     for category, layers in layers_info.items():
-        result += f"{category}:\n"
+        description += f"{category}:\n"
         for layer in layers:
-            result += f"  - {layer}\n"
-        result += "\n"
+            description += f"  - {layer}\n"
+        description += "\n"
     
-    result += "Popular Bounding Boxes:\n"
-    result += "  - World: -180,-90,180,90\n"
-    result += "  - North America: -170,15,-50,75\n"
-    result += "  - Europe: -25,35,45,70\n"
-    result += "  - Asia: 60,-10,150,55\n"
-    result += "  - Australia: 110,-45,160,-10\n"
-    result += "  - Africa: -25,-40,55,40\n"
-    result += "  - South America: -85,-60,-30,15\n\n"
+    description += "Popular Bounding Boxes:\n"
+    description += "  - World: -180,-90,180,90\n"
+    description += "  - North America: -170,15,-50,75\n"
+    description += "  - Europe: -25,35,45,70\n"
+    description += "  - Asia: 60,-10,150,55\n"
+    description += "  - Australia: 110,-45,160,-10\n"
+    description += "  - Africa: -25,-40,55,40\n"
+    description += "  - South America: -85,-60,-30,15\n\n"
     
-    result += "Usage Tips:\n"
-    result += "- Use epsg4326 for geographic data, epsg3857 for web mapping\n"
-    result += "- PNG format preserves transparency, JPEG is smaller file size\n"
-    result += "- Date format: YYYY-MM-DD (not all layers support all dates)\n"
-    result += "- Smaller bounding boxes provide higher detail\n"
-    result += "- Maximum recommended image size: 2048x2048 pixels"
+    description += "Usage Tips:\n"
+    description += "- Use epsg4326 for geographic data, epsg3857 for web mapping\n"
+    description += "- PNG format preserves transparency, JPEG is smaller file size\n"
+    description += "- Date format: YYYY-MM-DD (not all layers support all dates)\n"
+    description += "- Smaller bounding boxes provide higher detail\n"
+    description += "- Maximum recommended image size: 2048x2048 pixels"
     
-    return result
+    # Return consistent format
+    result = {
+        "description": description,
+        "resource": {
+            "uri": "https://gibs.earthdata.nasa.gov/",
+            "mimeType": "text/html",
+            "name": "GIBS_Layers_Documentation"
+        }
+    }
+    
+    return str(result)
