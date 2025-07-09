@@ -7,6 +7,8 @@ A Model Context Protocol (MCP) server that provides access to NASA's public APIs
 - **Astronomy Picture of the Day (APOD)**: Get daily astronomy images with descriptions
 - **Mars Rover Images**: Access photos from Mars rovers with various camera options
 - **Near Earth Objects (NEO)**: Retrieve asteroid data and close approach information
+- **Earth Images (EPIC)**: Get satellite images of Earth from NASA's DSCOVR satellite
+- **GIBS Satellite Imagery**: Access high-resolution Earth imagery from NASA's Global Imagery Browse Services
 
 ## Installation
 
@@ -139,6 +141,80 @@ Retrieve information about asteroids and their close approaches to Earth.
 - Get next 7 days of NEO data: `get_neo_feed()`
 - Get NEO data for specific date range: `get_neo_feed(start_date="2024-01-15", end_date="2024-01-20")`
 - Limit results per day: `get_neo_feed(limit_per_day=5)`
+
+### 4. get_earth_image_tool - Earth Images (EPIC)
+
+Get satellite images of Earth from NASA's DSCOVR satellite using the Earth Polychromatic Imaging Camera (EPIC).
+
+**Parameters:**
+
+- `earth_date` (YYYY-MM-DD): Date when the photo was taken (default: latest available)
+- `type` (string): Type of image to retrieve
+- `limit` (int): Number of images to retrieve (default: 1, max recommended: 10)
+
+**Available Image Types:**
+
+- `natural`: Natural color images (default)
+- `enhanced`: Enhanced color images
+- `aerosol`: Aerosol images
+- `cloud`: Cloud images
+
+**Example Usage:**
+
+- Get latest Earth images: `get_earth_image_tool()`
+- Get images for specific date: `get_earth_image_tool(earth_date="2024-01-15")`
+- Get enhanced color images: `get_earth_image_tool(type="enhanced")`
+- Get multiple images: `get_earth_image_tool(limit=5)`
+
+### 5. get_gibs_image - GIBS Satellite Imagery
+
+Access high-resolution satellite imagery of Earth from NASA's Global Imagery Browse Services (GIBS).
+
+**Parameters:**
+
+- `layer` (string): The imagery layer to fetch (default: "MODIS_Terra_CorrectedReflectance_TrueColor")
+- `bbox` (string): Bounding box as "min_lon,min_lat,max_lon,max_lat" (default: "-180,-90,180,90")
+- `date` (YYYY-MM-DD): Date for the imagery (default: most recent available)
+- `width` (int): Image width in pixels (default: 512, max recommended: 2048)
+- `height` (int): Image height in pixels (default: 512, max recommended: 2048)
+- `format` (string): Image format - "image/png" or "image/jpeg" (default: "image/png")
+- `projection` (string): Coordinate system - "epsg4326" or "epsg3857" (default: "epsg4326")
+
+**Popular Imagery Layers:**
+
+- `MODIS_Terra_CorrectedReflectance_TrueColor`: Terra satellite true color (default)
+- `MODIS_Aqua_CorrectedReflectance_TrueColor`: Aqua satellite true color
+- `VIIRS_SNPP_CorrectedReflectance_TrueColor`: VIIRS satellite true color
+- `MODIS_Terra_CorrectedReflectance_Bands721`: Terra false color
+- `MODIS_Aqua_CorrectedReflectance_Bands721`: Aqua false color
+- `Reference_Labels_15m`: Political boundaries and labels
+- `Reference_Features_15m`: Coastlines and water bodies
+- `MODIS_Terra_Aerosol`: Aerosol optical depth
+- `MODIS_Terra_Land_Surface_Temp_Day`: Land surface temperature
+
+**Example Bounding Boxes:**
+
+- World: `"-180,-90,180,90"`
+- USA: `"-125,25,-65,50"`
+- Europe: `"0,40,40,70"`
+
+**Example Usage:**
+
+- Get world imagery: `get_gibs_image()`
+- Get USA true color imagery: `get_gibs_image(bbox="-125,25,-65,50")`
+- Get false color imagery: `get_gibs_image(layer="MODIS_Terra_CorrectedReflectance_Bands721")`
+- Get high-resolution imagery: `get_gibs_image(width=1024, height=1024)`
+- Get imagery for specific date: `get_gibs_image(date="2024-01-15")`
+
+### 6. get_gibs_layers - Available GIBS Layers
+
+Get information about all available GIBS layers and their capabilities.
+
+**Parameters:** None
+
+**Example Usage:**
+
+- Get all available layers: `get_gibs_layers()`
 
 ## Error Handling
 

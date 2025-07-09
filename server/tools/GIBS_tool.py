@@ -1,7 +1,12 @@
+import datetime
+import os
+from typing import Any
+import httpx
+
 async def get_gibs_image_definition(
     layer: str = "MODIS_Terra_CorrectedReflectance_TrueColor",
     bbox: str = "-180,-90,180,90",
-    date: Any = None,
+    date = None,
     width: int = 512,
     height: int = 512,
     format: str = "image/png",
