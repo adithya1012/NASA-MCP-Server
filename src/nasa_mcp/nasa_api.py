@@ -937,7 +937,7 @@ def analyze_image_from_url(image_url: str, max_size: int = 1024, quality: int = 
     except Exception as e:
         return {"success": False, "error": f"Error processing image: {str(e)}"}
 
-# CORRECTED VERSION - Returns list of MCP content types
+# @mcp.tool()
 async def mcp_analyze_image_tool_definition(image_url: str, max_size: int = 1024, quality: int = 85) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
     """
     MCP tool function that returns the image in a format the LLM can analyze.
@@ -945,31 +945,20 @@ async def mcp_analyze_image_tool_definition(image_url: str, max_size: int = 1024
     result = analyze_image_from_url(image_url, max_size, quality)
     
     if result["success"]:
-        # Return structured data that includes the base64 image
-        response_data = {
-            "status": "success",
-            "message": "Image processed successfully for analysis",
-            "image_data": {
-                "base64": result["base64_data"],
-                "mime_type": result["mime_type"],
-                "data_uri": result["data_uri"]
-            },
-            "metadata": {
-                "original_url": result["original_url"],
-                "original_dimensions": f"{result['original_dimensions'][0]}*{result['original_dimensions'][1]}",
-                "processed_dimensions": f"{result['processed_dimensions'][0]}*{result['processed_dimensions'][1]}",
-                "original_size": f"{result['original_size_bytes']:,} bytes",
-                "compressed_size": f"{result['compressed_size_bytes']:,} bytes",
-                "compression_ratio": f"{result['compression_ratio']:.1f}%"
-            }
-        }
-        return json.dumps(response_data, indent=2)
+        return [
+            types.ImageContent(
+                type="image",
+                data=result["base64_data"],
+                mimeType=result["mime_type"]
+            )
+        ]
     else:
-        error_response = {
-            "status": "error",
-            "message": result["error"]
-        }
-        return json.dumps(error_response, indent=2)
+        return [
+            types.TextContent(
+                type="text",
+                text=f"Error processing image: {result['error']}"
+            )
+        ]
 
 
 # if __name__ == "__main__":

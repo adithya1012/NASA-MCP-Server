@@ -3,7 +3,8 @@ import asyncio
 import sys
 from typing import Any
 from mcp.server.fastmcp import FastMCP
-from .nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
+# from .nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
+from nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
 
 # Create FastMCP server instance
 mcp = FastMCP("nasa-mcp-server")
@@ -122,7 +123,8 @@ async def get_image_analyze(image_url: str, max_size: int = 1024, quality: int =
 def main():
     """Main entry point for the server"""
     # Use stdio transport for standard MCP clients (Claude Desktop, VS Code)
-    mcp.run(transport="stdio")
+    # mcp.run(transport="stdio")
+    mcp.run(transport="streamable-http")
 
 if __name__ == "__main__":
     main()
