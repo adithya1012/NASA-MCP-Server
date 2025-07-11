@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "nasa-mcp-server"
-version = "0.1.15"
+version = "0.1.16"
 description = "MCP server for NASA Mars Rover images"
 authors = [{name = "Adithya", email = "adithyasn7@gmail.com"}]
 license = {text = "MIT"}
