@@ -4,7 +4,7 @@ import sys
 from typing import Any
 from mcp.server.fastmcp import FastMCP
 # from .nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
-from nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
+from .nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
 import mcp.types as types
 
 # Create FastMCP server instance
