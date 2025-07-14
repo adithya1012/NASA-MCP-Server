@@ -869,6 +869,7 @@ async def mcp_analyze_image_tool_definition(image_url: str):
         return types.ImageContent(type="image", 
                                    data=result["base64_data"], 
                                    mimeType=result["mime_type"])
+        
     else:
         return f"Error processing image: {result['error']}"
 

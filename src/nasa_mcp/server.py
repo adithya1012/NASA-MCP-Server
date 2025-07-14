@@ -4,7 +4,8 @@ import sys
 from typing import Any
 from mcp.server.fastmcp import FastMCP
 # from .nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
-from .nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
+from nasa_api import get_earth_image_definition, get_gibs_image_definition, get_gibs_layers_definition, get_mars_image_definition, get_astronomy_picture_of_the_day_tool_defnition, get_neo_feed_definition, mcp_analyze_image_tool_definition
+import mcp.types as types
 
 # Create FastMCP server instance
 mcp = FastMCP("nasa-mcp-server")
@@ -109,20 +110,20 @@ async def get_gibs_layers() -> str:
     return await get_gibs_layers_definition()
 
 @mcp.tool()
-async def get_image_analyze(image_url: str):
+async def get_image_analyze(image_url: str) -> types.ImageContent:
     """Fetch an image from URL and convert it to base64 for LLM analysis.
     Args:
         image_url: The URL of the image to analyze. (str)
     Returns:
-        Dict containing base64 image data and metadata
+        base64 image data and metadata
     """
     return await mcp_analyze_image_tool_definition(image_url)
 
 def main():
     """Main entry point for the server"""
     # Use stdio transport for standard MCP clients (Claude Desktop, VS Code)
-    mcp.run(transport="stdio")
-    # mcp.run(transport="streamable-http")
+    # mcp.run(transport="stdio")
+    mcp.run(transport="streamable-http")
 
 if __name__ == "__main__":
     main()
