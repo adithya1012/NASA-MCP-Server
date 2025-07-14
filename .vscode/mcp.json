@@ -1,11 +1,12 @@
 {
   "servers": {
     "nasa-mcp": {
-      "command": "uvx",
-      "args": ["nasa-mcp-server"],
-      "env": {
-        "NASA_API_KEY": ""
-      }
+      // "command": "uvx",
+      // "args": ["nasa-mcp-server"],
+      "url": "http://127.0.0.1:8000/mcp/"
+      // "env": {
+      //   "NASA_API_KEY": ""
+      // }
     }
   }
 }

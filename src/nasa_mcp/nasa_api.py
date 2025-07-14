@@ -3,12 +3,23 @@ import datetime
 import os
 from typing import Any, Dict, Union
 import httpx
+import base64
+import requests
+import io
+from PIL import Image
+import mcp.types as types
+import json
 
 # Get NASA API key from environment variable (set by MCP client)
 NASA_API_KEY = os.getenv("NASA_API_KEY", "DEMO_KEY")
 MARS_API = "https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?"
 APOD_API = "https://api.nasa.gov/planetary/apod?"
 NEOWS_API = "https://api.nasa.gov/neo/rest/v1/feed?"
+
+# Not working beyond this size for image analysis.
+max_size = 1204
+quality = 85
+
 
 async def get_mars_image_definition(earth_date: Any = None, sol: Any = None, camera: Any = None) -> str:
     """Request to Mars Rover Image. Fetch any images on Mars Rover. Each rover has its own set of photos stored in the database, which can be queried separately. There are several possible queries that can be made against the API."""
@@ -75,6 +86,7 @@ async def get_mars_image_definition(earth_date: Any = None, sol: Any = None, cam
             result = {
                 "description": f"Mars Rover Image Found!\nCamera: {photo_info['camera']['full_name']} ({photo_info['camera']['name']})\nEarth Date: {photo_info['earth_date']}\nSol: {photo_info['sol']}\nTotal photos available: {len(data['photos'])}",
                 "resource": {
+                    "type": "image",
                     "uri": first_image_url,
                     "mimeType": "image/jpeg",
                     "name": f"Mars_Rover_{photo_info['camera']['name']}_{photo_info['earth_date']}_Sol{photo_info['sol']}"
@@ -208,6 +220,7 @@ async def get_astronomy_picture_of_the_day_tool_defnition(date: Any = None, star
                 result = {
                     "description": description,
                     "resource": {
+                        "type": "image",
                         "uri": image_url,
                         "mimeType": mime_type,
                         "name": f"APOD_{data.get('date', 'unknown')}_{data.get('title', 'untitled').replace(' ', '_')[:50]}"
@@ -377,6 +390,7 @@ async def get_neo_feed_definition(start_date: Any = None, end_date: Any = None, 
             result = {
                 "description": description.strip(),
                 "resource": {
+                    "type": "image",
                     "uri": api_url,
                     "mimeType": "application/json",
                     "name": f"NEO_Feed_{params.get('start_date', 'auto')}_{params.get('end_date', 'auto')}"
@@ -519,6 +533,7 @@ async def get_earth_image_definition(earth_date: Any = None, type: Any = None, l
             result = {
                 "description": description,
                 "resource": {
+                    "type": "image",
                     "uri": final_image_url,
                     "mimeType": "image/png",
                     "name": f"Earth_{image_type}_{year}{month}{day}_{image_name}"
@@ -660,8 +675,8 @@ async def get_gibs_image_definition(
             description += f"Layer: {layer}\n"
             description += f"Date: {date if date else 'Most recent available'}\n"
             description += f"Bounding Box: {bbox}\n"
-            description += f"Coverage Area: {area_width:.2f}° longitude × {area_height:.2f}° latitude\n"
-            description += f"Image Size: {width}×{height} pixels\n"
+            description += f"Coverage Area: {area_width:.2f}° longitude * {area_height:.2f}° latitude\n"
+            description += f"Image Size: {width}*{height} pixels\n"
             description += f"Format: {format}\n"
             description += f"Projection: {projection.upper()}\n"
             description += f"Image Size: {len(response.content)} bytes"
@@ -670,6 +685,7 @@ async def get_gibs_image_definition(
             result = {
                 "description": description,
                 "resource": {
+                    "type": "image",
                     "uri": final_url,
                     "mimeType": format,
                     "name": f"GIBS_{layer}_{date if date else 'latest'}_{width}x{height}"
@@ -758,3 +774,136 @@ async def get_gibs_layers_definition() -> str:
     }
     
     return str(result)
+
+
+def analyze_image_from_url(image_url: str) -> dict:
+    """
+    Fetch an image from URL and convert it to base64 for LLM analysis.
+    
+    Args:
+        image_url: The URL of the image to analyze
+    
+    Returns:
+        Dict containing base64 image data and metadata
+    """
+    try:
+        # Fetch the image
+        response = requests.get(image_url, timeout=30)
+        response.raise_for_status()
+        
+        # Verify it's an image
+        content_type = response.headers.get('content-type', '')
+        if not content_type.startswith('image/'):
+            raise ValueError(f"URL does not point to an image. Content-Type: {content_type}")
+        
+        # Open and process the image
+        image_data = io.BytesIO(response.content)
+        image = Image.open(image_data)
+        
+        # Convert to RGB if necessary (for JPEG compatibility)
+        if image.mode in ('RGBA', 'LA', 'P'):
+            image = image.convert('RGB')
+        
+        # Resize if too large
+        original_dimensions = (image.width, image.height)
+        if image.width > max_size or image.height > max_size:
+            image.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
+        
+        # Convert to base64
+        output_buffer = io.BytesIO()
+        
+        # Determine format based on original or use JPEG for compression
+        if content_type == 'image/png' and image.mode == 'RGBA':
+            image.save(output_buffer, format='PNG')
+            mime_type = 'image/png'
+        else:
+            image.save(output_buffer, format='JPEG', quality=quality)
+            mime_type = 'image/jpeg'
+        
+        image_base64 = base64.b64encode(output_buffer.getvalue()).decode('utf-8')
+        
+        # Get image info
+        original_size = len(response.content)
+        compressed_size = len(output_buffer.getvalue())
+        
+        return {
+            "success": True,
+            "base64_data": image_base64,
+            "mime_type": mime_type,
+            "original_url": image_url,
+            "original_dimensions": original_dimensions,
+            "processed_dimensions": (image.width, image.height),
+            "original_size_bytes": original_size,
+            "compressed_size_bytes": compressed_size,
+            "compression_ratio": (1 - compressed_size/original_size)*100,
+            "data_uri": f"data:{mime_type};base64,{image_base64}"
+        }
+        
+    except requests.RequestException as e:
+        return {"success": False, "error": f"Failed to fetch image: {str(e)}"}
+    except Image.UnidentifiedImageError:
+        return {"success": False, "error": "Unable to process the image. Invalid image format."}
+    except Exception as e:
+        return {"success": False, "error": f"Error processing image: {str(e)}"}
+
+async def mcp_analyze_image_tool_definition(image_url: str):
+    """
+    MCP tool function that returns the image in a format the LLM can analyze.
+    """
+    result = analyze_image_from_url(image_url)
+    logger.debug(f"Base64 length: {len(result['base64_data'])} characters")
+    if result["success"]:
+        # Return the image data as a formatted string for the MCP tool
+        # response = {
+        #     # "success": True,
+        #     "type":"image",
+        #     "data": result["base64_data"],
+        #     "mime_type": result["mime_type"],
+        #     "original_url": result["original_url"],
+        #     "dimensions": f"{result['processed_dimensions'][0]}x{result['processed_dimensions'][1]}",
+        #     "original_size": f"{result['original_size_bytes']:,} bytes",
+        #     "compressed_size": f"{result['compressed_size_bytes']:,} bytes",
+        #     "compression_ratio": f"{result['compression_ratio']:.1f}%"
+        # }
+        # return str(response)
+        return types.ImageContent(type="image", 
+                                   data=result["base64_data"], 
+                                   mimeType=result["mime_type"])
+        
+    else:
+        return f"Error processing image: {result['error']}"
+
+
+# if __name__ == "__main__":
+#     import asyncio
+    
+#     async def test_image_analysis():
+#         # Test with a sample URL
+#         # test_url = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&BBOX=-10,30,40,50&WIDTH=512&HEIGHT=512&FORMAT=image/png&CRS=EPSG:4326&TIME=2023-07-01"
+#         # test_url = "https://apod.nasa.gov/apod/image/2507/Trifid2048.jpg"
+#         test_url = "https://apod.nasa.gov/apod/image/2507/Trifid2048.jpg"
+
+#         # Using the synchronous version for testing
+#         result = analyze_image_from_url(test_url)
+        
+#         if result["success"]:
+#             print(f"Success! Image converted to base64.")
+#             print(f"Original: {result['original_dimensions']} -> Processed: {result['processed_dimensions']}")
+#             print(f"Size: {result['original_size_bytes']:,} -> {result['compressed_size_bytes']:,} bytes")
+#             print(f"Base64 length: {len(result['base64_data'])} characters")
+#             print(f"Compression ratio: {result['compression_ratio']:.1f}%")
+#         else:
+#             print(f"Error: {result['error']}")
+        
+#         # Also test the async version
+#         print("\n--- Testing async version ---")
+#         async_result = await mcp_analyze_image_tool_definition(test_url)
+#         print(f"Async result type: {async_result['type']}")
+#         if async_result['type'] == 'resource':
+#             print(f"Resource URI: {async_result['resource']['uri'][:100]}...")
+#             print(f"Metadata: {async_result['metadata']}")
+#         else:
+#             print(f"Text result: {async_result['text']}")
+    
+#     # Run the async test
+#     asyncio.run(test_image_analysis())
