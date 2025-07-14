@@ -851,7 +851,7 @@ async def mcp_analyze_image_tool_definition(image_url: str):
     MCP tool function that returns the image in a format the LLM can analyze.
     """
     result = analyze_image_from_url(image_url)
-    print(f"Base64 length: {len(result['base64_data'])} characters")
+    logger.debug(f"Base64 length: {len(result['base64_data'])} characters")
     if result["success"]:
         # Return the image data as a formatted string for the MCP tool
         # response = {
