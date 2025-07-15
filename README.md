@@ -9,6 +9,8 @@ A Model Context Protocol (MCP) server that provides access to NASA's public APIs
 - **Near Earth Objects (NEO)**: Retrieve asteroid data and close approach information
 - **Earth Images (EPIC)**: Get satellite images of Earth from NASA's DSCOVR satellite
 - **GIBS Satellite Imagery**: Access high-resolution Earth imagery from NASA's Global Imagery Browse Services
+- **GIBS Layers Information**: Get details about available satellite imagery layers
+- **Image Analysis Tool**: Fetch and analyze images from URLs with automatic processing and base64 conversion
 
 ## Installation
 
@@ -216,6 +218,27 @@ Get information about all available GIBS layers and their capabilities.
 
 - Get all available layers: `get_gibs_layers()`
 
+### 7. get_image_analyze - Image Analysis Tool
+
+Fetch an image from a URL and convert it to base64 format for LLM analysis. This tool downloads images from any URL and processes them for analysis.
+
+**Parameters:**
+
+- `image_url` (string): The URL of the image to analyze (required)
+
+**Example Usage:**
+
+- Analyze an image from URL: `get_image_analyze(image_url="https://example.com/image.jpg")`
+- Analyze NASA image: `get_image_analyze(image_url="https://apod.nasa.gov/apod/image/2401/example.jpg")`
+
+**Features:**
+
+- Automatic image format detection (PNG, JPEG, GIF)
+- Image compression and resizing for optimal processing
+- Base64 conversion for LLM analysis
+- Support for various image formats and URLs
+- Automatic RGB conversion for JPEG compatibility
+
 ## Error Handling
 
 The server includes comprehensive error handling for:
@@ -224,6 +247,34 @@ The server includes comprehensive error handling for:
 - Network timeouts
 - Invalid API keys
 - NASA API-specific errors
+
+## Testing
+
+The project includes a comprehensive test suite to ensure all MCP tools function correctly.
+
+### Quick Testing
+
+```bash
+# Run all tests
+python test.py
+
+# Run with verbose output
+python test.py -v
+
+# Setup test environment
+python tests/setup_tests.py
+```
+
+### Test Coverage
+
+The test suite covers:
+
+- All 7 MCP tools with various parameter combinations
+- Error handling scenarios
+- Integration workflows
+- Async functionality
+
+For detailed testing information, see [`tests/README.md`](tests/README.md).
 
 ## Requirements
 
@@ -247,4 +298,4 @@ This project uses NASA's public APIs. Please refer to NASA's API terms of servic
 
 ## Developper
 
-I am Adithya. I developped this package as part of the internship project. Wanted to talk more, shoot me an email at adithyasn7@gmail.com
+I am Adithya. I developped this package as part of the MIE internship project. Wanted to talk more, shoot me an email at adithyasn7@gmail.com
