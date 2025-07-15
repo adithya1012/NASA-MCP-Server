@@ -873,37 +873,3 @@ async def mcp_analyze_image_tool_definition(image_url: str):
     else:
         return f"Error processing image: {result['error']}"
 
-
-# if __name__ == "__main__":
-#     import asyncio
-    
-#     async def test_image_analysis():
-#         # Test with a sample URL
-#         # test_url = "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.3.0&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&BBOX=-10,30,40,50&WIDTH=512&HEIGHT=512&FORMAT=image/png&CRS=EPSG:4326&TIME=2023-07-01"
-#         # test_url = "https://apod.nasa.gov/apod/image/2507/Trifid2048.jpg"
-#         test_url = "https://apod.nasa.gov/apod/image/2507/Trifid2048.jpg"
-
-#         # Using the synchronous version for testing
-#         result = analyze_image_from_url(test_url)
-        
-#         if result["success"]:
-#             print(f"Success! Image converted to base64.")
-#             print(f"Original: {result['original_dimensions']} -> Processed: {result['processed_dimensions']}")
-#             print(f"Size: {result['original_size_bytes']:,} -> {result['compressed_size_bytes']:,} bytes")
-#             print(f"Base64 length: {len(result['base64_data'])} characters")
-#             print(f"Compression ratio: {result['compression_ratio']:.1f}%")
-#         else:
-#             print(f"Error: {result['error']}")
-        
-#         # Also test the async version
-#         print("\n--- Testing async version ---")
-#         async_result = await mcp_analyze_image_tool_definition(test_url)
-#         print(f"Async result type: {async_result['type']}")
-#         if async_result['type'] == 'resource':
-#             print(f"Resource URI: {async_result['resource']['uri'][:100]}...")
-#             print(f"Metadata: {async_result['metadata']}")
-#         else:
-#             print(f"Text result: {async_result['text']}")
-    
-#     # Run the async test
-#     asyncio.run(test_image_analysis())

@@ -34,3 +34,4 @@ htmlcov/
 nosetests.xml
 coverage.xml
 *.log
+Server
