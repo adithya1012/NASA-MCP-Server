@@ -239,6 +239,9 @@ Fetch an image from a URL and convert it to base64 format for LLM analysis. This
 - Support for various image formats and URLs
 - Automatic RGB conversion for JPEG compatibility
 
+** NOTE **
+This tool returns a [imagecontent](https://modelcontextprotocol.io/specification/2025-06-18/schema#imagecontent). This is supported in only ** Claud 4 ** as of now. Other LLMs may not respond for image analysis.
+
 ## Error Handling
 
 The server includes comprehensive error handling for:
@@ -298,4 +301,4 @@ This project uses NASA's public APIs. Please refer to NASA's API terms of servic
 
 ## Developper
 
-I am Adithya. I developped this package as part of the MIE internship project. Wanted to talk more, shoot me an email at adithyasn7@gmail.com
+I am Adithya. I developped this package as part of the [MIE](https://mieweb.org/) internship project. Wanted to talk more, shoot me an email at adithyasn7@gmail.com
