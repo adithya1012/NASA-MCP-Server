@@ -36,3 +36,5 @@ coverage.xml
 *.log
 Server
 test_openapi.py
+demo_openapi.py
+nasa_openapi.json
