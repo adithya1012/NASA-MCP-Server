@@ -35,3 +35,4 @@ nosetests.xml
 coverage.xml
 *.log
 Server
+test_openapi.py
